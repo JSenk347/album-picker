@@ -1,34 +1,107 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useState, useEffect } from 'react'
+import { FormControl, InputGroup, Container, Button } from "react-bootstrap";
 import './App.css'
 
+//Container: To wrap around the search box
+//InputGroup: Used as the form for our search box
+//FormControl: For our search box input
+//Button: For submitting input
+
+const clientId = import.meta.env.VITE_CLIENT_ID;
+const clientSecret = import.meta.env.VITE_CLIENT_SECRET;
+
 function App() {
-  const [count, setCount] = useState(0)
+  const [searchInput, setSearchInput] = useState("");
+  const [accessToken, setAccessToken] = useState("");
+
+  useEffect(() => {
+    //Requesting an access token that we can later use to retrieve data from the spotify API
+    //Defining our object authParams
+    let authParams = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body:
+        "grant_type=client_credentials&client_id=" +
+        clientId +
+        "&client_secret=" +
+        clientSecret,
+    };
+
+    /*
+      fetch() is a built-in JS function used to make HTTP requests.
+      parameters:
+        - the URL we're sending the POST request to (https://accounts.spotify.com/api/token)
+        - the Options Object called authParams
+      returns:
+        - a Promise in which we're able to use our access token for our search function
+    */
+
+    /*
+       .then() is used with Promises to handle actions that should happen after an asynchronous operation completes
+       parameters:
+         - first Callback function to execute on success (resolved Promise), the second (optional) to handle errors
+       returns:
+         - a new Promise
+    */
+
+    /*
+      Flow of Execution:
+      1. fetch() begins an HTTP request and returns a Promise
+      2. first .then() executes once the response from fetch() arrives, converting the raw response into JSON
+      3. Second .then runs with that JSON data, setting the access token for use in the app
+      Each .then() waits for the previous asynchronous task to complete before executing, called Promise Chaining
+    */
+    fetch("https://accounts.spotify.com/api/token", authParams)
+      .then((result) => result.json())
+      .then((data) => {
+        setAccessToken(data.access_token);
+      });
+    
+  }, [])
+
+  const search = async () => {
+    let artistParams = {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + accessToken,
+      },
+    };
+
+    //Get artist
+    const artistID = await fetch(
+      "https://api.spotify.com/v1/search?q=" + searchInput + "&type=artist", artistParams
+    ).then((result) => result.json()).then((data) => {
+      return data.artists.items[0].id;
+    });
+
+    console.log("Search Input: " + searchInput);
+    console.log("Artist ID: " + artistID)
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <Container>
+      <InputGroup>
+        <FormControl
+          placeholder="Search For Artist"
+          type="input"
+          aria-label="Search for an Artist"
+          onKeyDown={(e) => { search() ? e.key === "Enter" : pass }} //Function here
+          onChange={(e) => setSearchInput(e.target.value)} //Function here
+          style={{
+            width: "300px",
+            height: "35px",
+            borderWidth: "0px",
+            borderStyle: "solid",
+            borderRadius: "5px",
+            marginRight: "10px",
+            paddingLeft: "10px",
+          }} />
+        <Button onClick={search}>Search</Button>
+      </InputGroup>
+    </Container>
   )
 }
 
