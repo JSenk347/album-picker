@@ -97,8 +97,14 @@ function App() {
             type="input"
             className='search-input'
             aria-label="Search for an Artist"
-            onKeyDown={(e) => { search() ? e.key === "Enter" : setAlbums([])}} //Function here
-            onChange={(e) => setSearchInput(e.target.value)} //Function here
+            onKeyDown={(e) => {
+              if (e.key === "Enter"){
+                search();
+              } else if (searchInput.length <= 1){
+                setAlbums([]);
+              }
+            }}
+            onChange={(e) => setSearchInput(e.target.value)}
             style={{
               width: "300px",
               height: "35px",
