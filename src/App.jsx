@@ -93,8 +93,9 @@ function App() {
       <Container>
         <InputGroup>
           <FormControl
-            placeholder="Search For Artist"
+            placeholder="Enter Name of Artist"
             type="input"
+            className='search-input'
             aria-label="Search for an Artist"
             onKeyDown={(e) => { search() ? e.key === "Enter" : setAlbums([])}} //Function here
             onChange={(e) => setSearchInput(e.target.value)} //Function here
